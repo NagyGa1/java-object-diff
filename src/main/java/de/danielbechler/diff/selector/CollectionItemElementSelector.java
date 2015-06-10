@@ -16,6 +16,9 @@
 
 package de.danielbechler.diff.selector;
 
+import de.danielbechler.diff.identity.IdentityService;
+import de.danielbechler.diff.identity.IdentityStrategy;
+import de.danielbechler.util.Assert;
 import de.danielbechler.util.Strings;
 
 /**
@@ -24,10 +27,30 @@ import de.danielbechler.util.Strings;
 public final class CollectionItemElementSelector extends ElementSelector
 {
 	private final Object item;
+	private final IdentityStrategy identityStrategy;
 
+	/**
+	 * Default implementation uses IdentityService.EQUALS_IDENTITY_STRATEGY.
+	 *
+	 * @param item
+	 */
 	public CollectionItemElementSelector(final Object item)
 	{
 		this.item = item;
+		this.identityStrategy = IdentityService.EQUALS_IDENTITY_STRATEGY;
+	}
+
+	/**
+	 * Allows for custom IdentityStrategy.
+	 *
+	 * @param item
+	 * @param identityStrategy
+	 */
+	public CollectionItemElementSelector(final Object item, final IdentityStrategy identityStrategy)
+	{
+		this.item = item;
+		Assert.notNull(identityStrategy, "identityStrategy");
+		this.identityStrategy = identityStrategy;
 	}
 
 	/**
@@ -60,7 +83,7 @@ public final class CollectionItemElementSelector extends ElementSelector
 
 		final CollectionItemElementSelector that = (CollectionItemElementSelector) o;
 
-		if (item != null ? !item.equals(that.item) : that.item != null)
+		if (item != null ? !identityStrategy.equals(item, that.item) : that.item != null)
 		{
 			return false;
 		}
@@ -71,6 +94,6 @@ public final class CollectionItemElementSelector extends ElementSelector
 	@Override
 	public int hashCode()
 	{
-		return 31;
+		return item != null ? identityStrategy.hashCode(item) : 0;
 	}
 }

@@ -16,10 +16,13 @@
 
 package de.danielbechler.diff.access;
 
+import java.util.Collection;
+
+import de.danielbechler.diff.identity.IdentityService;
+import de.danielbechler.diff.identity.IdentityStrategy;
 import de.danielbechler.diff.selector.CollectionItemElementSelector;
 import de.danielbechler.diff.selector.ElementSelector;
-
-import java.util.Collection;
+import de.danielbechler.util.Assert;
 
 /**
  * @author Daniel Bechler
@@ -27,10 +30,31 @@ import java.util.Collection;
 public class CollectionItemAccessor implements TypeAwareAccessor, Accessor
 {
 	private final Object referenceItem;
+	private final IdentityStrategy identityStrategy;
 
+	/**
+	 * Default implementation uses IdentityService.EQUALS_IDENTITY_STRATEGY.
+	 * 
+	 * @param referenceItem
+	 */
 	public CollectionItemAccessor(final Object referenceItem)
+ {
+		this.referenceItem = referenceItem;
+		this.identityStrategy = IdentityService.EQUALS_IDENTITY_STRATEGY;
+	}
+
+	/**
+	 * Allows for custom IdentityStrategy.
+	 * 
+	 * @param referenceItem
+	 * @param identityStrategy
+	 */
+	public CollectionItemAccessor(final Object referenceItem,
+			final IdentityStrategy identityStrategy)
 	{
 		this.referenceItem = referenceItem;
+		Assert.notNull(identityStrategy, "identityStrategy");
+		this.identityStrategy = identityStrategy;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -49,7 +73,8 @@ public class CollectionItemAccessor implements TypeAwareAccessor, Accessor
 
 	public ElementSelector getElementSelector()
 	{
-		return new CollectionItemElementSelector(referenceItem);
+		return new CollectionItemElementSelector(referenceItem,
+				identityStrategy);
 	}
 
 	public void set(final Object target, final Object value)
@@ -76,7 +101,7 @@ public class CollectionItemAccessor implements TypeAwareAccessor, Accessor
 		}
 		for (final Object item : targetCollection)
 		{
-			if (item != null && item.equals(referenceItem))
+			if (item != null && identityStrategy.equals(item, referenceItem))
 			{
 				return item;
 			}

@@ -34,6 +34,8 @@ import de.danielbechler.diff.differ.MapDiffer;
 import de.danielbechler.diff.differ.PrimitiveDiffer;
 import de.danielbechler.diff.filtering.FilteringConfigurer;
 import de.danielbechler.diff.filtering.ReturnableNodeService;
+import de.danielbechler.diff.identity.IdentityConfigurer;
+import de.danielbechler.diff.identity.IdentityService;
 import de.danielbechler.diff.inclusion.InclusionConfigurer;
 import de.danielbechler.diff.inclusion.InclusionService;
 import de.danielbechler.diff.introspection.IntrospectionConfigurer;
@@ -57,6 +59,7 @@ public class ObjectDifferBuilder
 	private final CategoryService categoryService = new CategoryService(this);
 	private final InclusionService inclusionService = new InclusionService(categoryService, this);
 	private final ComparisonService comparisonService = new ComparisonService(this);
+	private final IdentityService identityService = new IdentityService(this);
 	private final ReturnableNodeService returnableNodeService = new ReturnableNodeService(this);
 	private final CircularReferenceService circularReferenceService = new CircularReferenceService(this);
 	private final DifferConfigurer differConfigurer = new DifferConfigurerImpl();
@@ -83,7 +86,7 @@ public class ObjectDifferBuilder
 				returnableNodeService,
 				introspectionService);
 		differProvider.push(new BeanDiffer(differDispatcher, introspectionService, returnableNodeService, comparisonService, introspectionService));
-		differProvider.push(new CollectionDiffer(differDispatcher, comparisonService));
+		differProvider.push(new CollectionDiffer(differDispatcher, comparisonService, identityService));
 		differProvider.push(new MapDiffer(differDispatcher, comparisonService));
 		differProvider.push(new PrimitiveDiffer(comparisonService));
 		for (final DifferFactory differFactory : differFactories)
@@ -138,6 +141,15 @@ public class ObjectDifferBuilder
 	public ComparisonConfigurer comparison()
 	{
 		return comparisonService;
+	}
+
+	/**
+	 * Allows to configure the way objects identities are established when comparing collections by
+	 * CollectionDiffer.
+	 */
+	public IdentityConfigurer identity()
+	{
+		return identityService;
 	}
 
 	/**

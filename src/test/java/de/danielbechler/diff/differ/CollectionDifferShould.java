@@ -20,6 +20,9 @@ import de.danielbechler.diff.access.Instances;
 import de.danielbechler.diff.access.RootAccessor;
 import de.danielbechler.diff.comparison.ComparisonStrategy;
 import de.danielbechler.diff.comparison.ComparisonStrategyResolver;
+import de.danielbechler.diff.identity.IdentityService;
+import de.danielbechler.diff.identity.IdentityStrategy;
+import de.danielbechler.diff.identity.IdentityStrategyResolver;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.path.NodePath;
 import org.mockito.Mock;
@@ -52,6 +55,11 @@ public class CollectionDifferShould
 {
 	@Mock
 	private ComparisonStrategyResolver comparisonStrategyResolver;
+	private IdentityStrategyResolver identityStrategyResolver = new IdentityStrategyResolver() {
+		public IdentityStrategy resolveIdentityStrategy(final DiffNode node) {
+			return IdentityService.EQUALS_IDENTITY_STRATEGY;
+		}
+	};
 	@Mock
 	private ComparisonStrategy comparisonStrategy;
 	@Mock
@@ -68,7 +76,7 @@ public class CollectionDifferShould
 	public void setUp() throws Exception
 	{
 		initMocks(this);
-		collectionDiffer = new CollectionDiffer(differDispatcher, comparisonStrategyResolver);
+		collectionDiffer = new CollectionDiffer(differDispatcher, comparisonStrategyResolver, identityStrategyResolver);
 		baseCollection = new HashSet<String>();
 		workingCollection = new HashSet<String>();
 		when(instances.getSourceAccessor()).thenReturn(RootAccessor.getInstance());
@@ -102,13 +110,19 @@ public class CollectionDifferShould
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void fail_if_constructed_without_DifferDispatcher()
 	{
-		new CollectionDiffer(null, comparisonStrategyResolver);
+		new CollectionDiffer(null, comparisonStrategyResolver, identityStrategyResolver);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void fail_if_constructed_without_ComparisonStrategyResolver()
 	{
-		new CollectionDiffer(differDispatcher, null);
+		new CollectionDiffer(differDispatcher, null, identityStrategyResolver);
+	}
+
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void fail_if_constructed_without_IdentityStrategyResolver()
+	{
+		new CollectionDiffer(differDispatcher, comparisonStrategyResolver, null);
 	}
 
 	@Test
