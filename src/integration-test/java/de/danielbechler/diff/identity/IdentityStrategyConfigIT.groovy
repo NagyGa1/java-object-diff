@@ -146,6 +146,32 @@ class IdentityStrategyConfigIT extends Specification {
                     .getChild(PV1CodeSelector).getChild("code").untouched
     }
 
+    def 'OfType configuration WITH IdentityStrategy'() {
+        when:
+        def node = ObjectDifferBuilder
+                .startBuilding()
+                .identity().ofType(ProductVersion.class).toUse(codeIdentity).and()
+                .filtering().returnNodesWithState(DiffNode.State.UNTOUCHED).and()
+                .build().compare(working, base);
+        then: "High level nodes"
+//            print(node, working, base)
+            node.getChild("otherMap").untouched
+            node.getChild("productMap").changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions").changed
+        and: "ID1 and ID2 are CHANGED"
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).changed
+        and: "id changed, code untouched"
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).getChild("id").changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).getChild("code").untouched
+    }
+
+
     private void print(final DiffNode diffNode, final Object working,
                        final Object base) {
         diffNode.visit(new DiffNode.Visitor() {

@@ -20,4 +20,5 @@ import de.danielbechler.diff.node.DiffNode;
 
 public interface IdentityStrategyResolver {
 	IdentityStrategy resolveIdentityStrategy(DiffNode node);
+	IdentityStrategy resolveByCollectionElement(Object collectionElement);
 }

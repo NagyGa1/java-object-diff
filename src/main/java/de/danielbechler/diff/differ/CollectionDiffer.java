@@ -16,7 +16,6 @@
 
 package de.danielbechler.diff.differ;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,11 +25,11 @@ import de.danielbechler.diff.access.CollectionItemAccessor;
 import de.danielbechler.diff.access.Instances;
 import de.danielbechler.diff.comparison.ComparisonStrategy;
 import de.danielbechler.diff.comparison.ComparisonStrategyResolver;
+import de.danielbechler.diff.identity.IdentityService;
 import de.danielbechler.diff.identity.IdentityStrategy;
 import de.danielbechler.diff.identity.IdentityStrategyResolver;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.util.Assert;
-import de.danielbechler.util.Collections;
 
 /**
  * Used to find differences between {@link Collection Collections}.
@@ -138,7 +137,12 @@ public final class CollectionDiffer implements Differ
 		final Iterator<?> iterator = from.iterator();
 		while(iterator.hasNext()) {
 			final Object _this = iterator.next();
-			if(contains(these, _this, identityStrategy)) {
+			IdentityStrategy elementIdentityStrategy = identityStrategy;
+			// try with element class if was not specified before
+			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(_this);
+			}
+			if(contains(these, _this, elementIdentityStrategy)) {
 				iterator.remove();
 			}
 		}
@@ -148,7 +152,12 @@ public final class CollectionDiffer implements Differ
 							 final Object _this,
 							 final IdentityStrategy identityStrategy) {
 		for (Object o : these) {
-			if(identityStrategy.equals(_this, o)) {
+			IdentityStrategy elementIdentityStrategy = identityStrategy;
+			// try with element class if was not specified before
+			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(_this);
+			}
+			if(elementIdentityStrategy.equals(_this, o)) {
 				return true;
 			}
 		}
@@ -163,7 +172,12 @@ public final class CollectionDiffer implements Differ
 	{
 		for (final Object item : items)
 		{
-			final Accessor itemAccessor = new CollectionItemAccessor(item, identityStrategy);
+			IdentityStrategy elementIdentityStrategy = identityStrategy;
+			// try with element class if was not specified before
+			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(item);
+			}
+			final Accessor itemAccessor = new CollectionItemAccessor(item, elementIdentityStrategy);
 			differDispatcher.dispatch(collectionNode, collectionInstances, itemAccessor);
 		}
 	}

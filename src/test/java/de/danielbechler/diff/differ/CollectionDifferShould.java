@@ -59,6 +59,9 @@ public class CollectionDifferShould
 		public IdentityStrategy resolveIdentityStrategy(final DiffNode node) {
 			return IdentityService.EQUALS_IDENTITY_STRATEGY;
 		}
+		public IdentityStrategy resolveByCollectionElement(final Object collectionElement) {
+			return IdentityService.EQUALS_IDENTITY_STRATEGY;
+		}
 	};
 	@Mock
 	private ComparisonStrategy comparisonStrategy;

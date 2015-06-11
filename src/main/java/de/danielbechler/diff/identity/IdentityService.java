@@ -65,6 +65,20 @@ public class IdentityService implements IdentityConfigurer, IdentityStrategyReso
 		return EQUALS_IDENTITY_STRATEGY;
 	}
 
+	public IdentityStrategy resolveByCollectionElement(final Object collectionElement)
+	{
+		if(collectionElement == null) {
+			return EQUALS_IDENTITY_STRATEGY;
+		}
+
+		final IdentityStrategy identityStrategy = typeStrategyMap.get(collectionElement.getClass());
+		if(identityStrategy != null) {
+			return identityStrategy;
+		}
+
+		return EQUALS_IDENTITY_STRATEGY;
+	}
+
 	public Of ofNode(final NodePath nodePath)
 	{
 		return new OfNodePath(nodePath);
