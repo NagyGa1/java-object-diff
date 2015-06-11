@@ -19,6 +19,7 @@ package de.danielbechler.diff.identity
 import de.danielbechler.diff.ObjectDifferBuilder
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.Visit
+import de.danielbechler.diff.path.NodePath
 import de.danielbechler.diff.selector.CollectionItemElementSelector
 import de.danielbechler.diff.selector.MapKeyElementSelector
 import groovy.transform.EqualsAndHashCode
@@ -151,6 +152,35 @@ class IdentityStrategyConfigIT extends Specification {
         def node = ObjectDifferBuilder
                 .startBuilding()
                 .identity().ofType(ProductVersion.class).toUse(codeIdentity).and()
+                .filtering().returnNodesWithState(DiffNode.State.UNTOUCHED).and()
+                .build().compare(working, base);
+        then: "High level nodes"
+//            print(node, working, base)
+            node.getChild("otherMap").untouched
+            node.getChild("productMap").changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions").changed
+        and: "ID1 and ID2 are CHANGED"
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).changed
+        and: "id changed, code untouched"
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).getChild("id").changed
+            node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
+                    .getChild(PV1CodeSelector).getChild("code").untouched
+    }
+
+    def 'OfNode configuration WITH IdentityStrategy'() {
+        when:
+        def node = ObjectDifferBuilder
+                .startBuilding()
+                .identity().ofNode(
+                    // this is not very useful without wildcards on maps and collections...
+                    NodePath.startBuilding().propertyName("productMap").mapKey("PROD1")
+                            .propertyName("productVersions").build()
+                ).toUse(codeIdentity).and()
                 .filtering().returnNodesWithState(DiffNode.State.UNTOUCHED).and()
                 .build().compare(working, base);
         then: "High level nodes"
