@@ -16,24 +16,15 @@
 
 package de.danielbechler.diff.identity;
 
+import static de.danielbechler.diff.inclusion.Inclusion.EXCLUDED;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import de.danielbechler.diff.ObjectDifferBuilder;
-import de.danielbechler.diff.comparison.ComparableComparisonStrategy;
-import de.danielbechler.diff.comparison.ComparisonConfigurer;
-import de.danielbechler.diff.comparison.ComparisonStrategy;
-import de.danielbechler.diff.comparison.ComparisonStrategyResolver;
-import de.danielbechler.diff.comparison.EqualsOnlyComparisonStrategy;
-import de.danielbechler.diff.comparison.ObjectDiffPropertyComparisonStrategyResolver;
-import de.danielbechler.diff.comparison.PrimitiveDefaultValueMode;
-import de.danielbechler.diff.comparison.PrimitiveDefaultValueModeResolver;
-import de.danielbechler.diff.introspection.ObjectDiffEqualsOnlyType;
-import de.danielbechler.diff.introspection.ObjectDiffProperty;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.path.NodePath;
 import de.danielbechler.diff.path.NodePathValueHolder;
-import de.danielbechler.util.Classes;
 
 /**
  * Resolves identity strategies, if none specified use EqualsIdentityStrategy().
@@ -44,6 +35,7 @@ public class IdentityService implements IdentityConfigurer, IdentityStrategyReso
 
 	private final NodePathValueHolder<IdentityStrategy> nodePathStrategies = NodePathValueHolder.of(IdentityStrategy.class);
 	private final Map<Class<?>, IdentityStrategy> typeStrategyMap = new HashMap<Class<?>, IdentityStrategy>();
+	private final TypePropertyResolver typePropertyResolver = new TypePropertyResolver();
 	private final ObjectDifferBuilder objectDifferBuilder;
 
 	public IdentityService(final ObjectDifferBuilder objectDifferBuilder)
@@ -53,7 +45,12 @@ public class IdentityService implements IdentityConfigurer, IdentityStrategyReso
 
 	public IdentityStrategy resolveIdentityStrategy(final DiffNode node)
 	{
-		final IdentityStrategy identityStrategy = nodePathStrategies.valueForNodePath(node.getPath());
+		IdentityStrategy identityStrategy = typePropertyResolver.resolve(node);
+		if (identityStrategy != null)
+		{
+			return identityStrategy;
+		}
+		identityStrategy = nodePathStrategies.valueForNodePath(node.getPath());
 		if (identityStrategy != null)
 		{
 			return identityStrategy;
@@ -76,6 +73,10 @@ public class IdentityService implements IdentityConfigurer, IdentityStrategyReso
 	public Of ofType(final Class<?> type)
 	{
 		return new OfType(type);
+	}
+
+	public Of ofTypeAndProperty(final Class<?> type, final String... propertyNames) {
+		return new OfTypeAndProperty(type, propertyNames);
 	}
 
 	public ObjectDifferBuilder and()
@@ -115,6 +116,24 @@ public class IdentityService implements IdentityConfigurer, IdentityStrategyReso
 		public IdentityConfigurer toUse(final IdentityStrategy identityStrategy)
 		{
 			nodePathStrategies.put(nodePath, identityStrategy);
+			return IdentityService.this;
+		}
+	}
+
+	private class OfTypeAndProperty extends AbstractOf
+	{
+		private final Class<?> type;
+
+		private final String[] properties;
+
+		public OfTypeAndProperty(final Class<?> type, final String[] properties) {
+			this.type = type;
+			this.properties = properties;
+		}
+
+		public IdentityConfigurer toUse(final IdentityStrategy identityStrategy)
+		{
+			typePropertyResolver.setStrategy(type, identityStrategy, properties);
 			return IdentityService.this;
 		}
 	}

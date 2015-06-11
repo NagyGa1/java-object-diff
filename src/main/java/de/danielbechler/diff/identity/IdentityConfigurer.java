@@ -28,6 +28,8 @@ public interface IdentityConfigurer {
 
 	Of ofType(Class<?> type);
 
+	Of ofTypeAndProperty(Class<?> type, String... propertyNames);
+
 	ObjectDifferBuilder and();
 
 	public interface Of {
