@@ -13,7 +13,7 @@ public interface IdentityStrategy {
 	 * @param o
 	 * @return
 	 */
-	public boolean equals(final Object _this, final Object o);
+	boolean equals(Object _this, Object o);
 
 	/**
 	 *
@@ -21,6 +21,6 @@ public interface IdentityStrategy {
 	 *            never null
 	 * @return
 	 */
-	public int hashCode(final Object _this);
+	int hashCode(Object _this);
 
 }

@@ -32,7 +32,7 @@ public interface IdentityConfigurer {
 
 	ObjectDifferBuilder and();
 
-	public interface Of {
+	interface Of {
 		IdentityConfigurer toUse(IdentityStrategy identityStrategy);
 	}
 
