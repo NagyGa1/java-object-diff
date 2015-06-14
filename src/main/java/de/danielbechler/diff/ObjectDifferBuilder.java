@@ -16,6 +16,10 @@
 
 package de.danielbechler.diff;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 import de.danielbechler.diff.category.CategoryConfigurer;
 import de.danielbechler.diff.category.CategoryService;
 import de.danielbechler.diff.circular.CircularReferenceConfigurer;
@@ -42,168 +46,152 @@ import de.danielbechler.diff.introspection.IntrospectionConfigurer;
 import de.danielbechler.diff.introspection.IntrospectionService;
 import de.danielbechler.diff.node.DiffNode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-
 /**
- * This is the entry point of every diffing operation. It acts as a factory to get hold of an actual {@link
- * ObjectDiffer} instance and exposes a configuration API to customize its behavior to
- * suit your needs.
+ * This is the entry point of every diffing operation. It acts as a factory to
+ * get hold of an actual {@link ObjectDiffer} instance and exposes a
+ * configuration API to customize its behavior to suit your needs.
  *
  * @author Daniel Bechler
  */
-public class ObjectDifferBuilder
-{
-	private final IntrospectionService introspectionService = new IntrospectionService(this);
+public class ObjectDifferBuilder {
+	private final IntrospectionService introspectionService = new IntrospectionService(
+			this);
 	private final CategoryService categoryService = new CategoryService(this);
-	private final InclusionService inclusionService = new InclusionService(categoryService, this);
-	private final ComparisonService comparisonService = new ComparisonService(this);
+	private final InclusionService inclusionService = new InclusionService(
+			categoryService, this);
+	private final ComparisonService comparisonService = new ComparisonService(
+			this);
 	private final IdentityService identityService = new IdentityService(this);
-	private final ReturnableNodeService returnableNodeService = new ReturnableNodeService(this);
-	private final CircularReferenceService circularReferenceService = new CircularReferenceService(this);
+	private final ReturnableNodeService returnableNodeService = new ReturnableNodeService(
+			this);
+	private final CircularReferenceService circularReferenceService = new CircularReferenceService(
+			this);
 	private final DifferConfigurer differConfigurer = new DifferConfigurerImpl();
 	private final NodeQueryService nodeQueryService = new NodeQueryServiceImpl();
 	private final Collection<DifferFactory> differFactories = new ArrayList<DifferFactory>();
 
-	private ObjectDifferBuilder()
-	{
+	private ObjectDifferBuilder() {
 	}
 
-	public static ObjectDiffer buildDefault()
-	{
+	public static ObjectDiffer buildDefault() {
 		return startBuilding().build();
 	}
 
-	public ObjectDiffer build()
-	{
+	public ObjectDiffer build() {
 		final DifferProvider differProvider = new DifferProvider();
 		final DifferDispatcher differDispatcher = new DifferDispatcher(
-				differProvider,
-				circularReferenceService,
-				circularReferenceService,
-				inclusionService,
-				returnableNodeService,
-				introspectionService);
-		differProvider.push(new BeanDiffer(differDispatcher, introspectionService, returnableNodeService, comparisonService, introspectionService));
-		differProvider.push(new CollectionDiffer(differDispatcher, comparisonService, identityService));
+				differProvider, circularReferenceService,
+				circularReferenceService, inclusionService,
+				returnableNodeService, introspectionService);
+		differProvider.push(new BeanDiffer(differDispatcher,
+				introspectionService, returnableNodeService, comparisonService,
+				introspectionService));
+		differProvider.push(new CollectionDiffer(differDispatcher,
+				comparisonService, identityService));
 		differProvider.push(new MapDiffer(differDispatcher, comparisonService));
 		differProvider.push(new PrimitiveDiffer(comparisonService));
-		for (final DifferFactory differFactory : differFactories)
-		{
-			differProvider.push(differFactory.createDiffer(differDispatcher, nodeQueryService));
+		for (final DifferFactory differFactory : differFactories) {
+			differProvider.push(differFactory.createDiffer(differDispatcher,
+					nodeQueryService));
 		}
 		return new ObjectDiffer(differDispatcher);
 	}
 
-	public static ObjectDifferBuilder startBuilding()
-	{
+	public static ObjectDifferBuilder startBuilding() {
 		return new ObjectDifferBuilder();
 	}
 
 	/**
-	 * Allows to exclude nodes from being added to the object graph based on criteria that are only known after
-	 * the diff for the affected node and all its children has been determined.
+	 * Allows to exclude nodes from being added to the object graph based on
+	 * criteria that are only known after the diff for the affected node and all
+	 * its children has been determined.
 	 */
-	public FilteringConfigurer filtering()
-	{
+	public FilteringConfigurer filtering() {
 		return returnableNodeService;
 	}
 
 	/**
-	 * Allows to replace the default bean introspector with a custom implementation.
+	 * Allows to replace the default bean introspector with a custom
+	 * implementation.
 	 */
-	public IntrospectionConfigurer introspection()
-	{
+	public IntrospectionConfigurer introspection() {
 		return introspectionService;
 	}
 
 	/**
-	 * Allows to define how the circular reference detector compares object instances.
+	 * Allows to define how the circular reference detector compares object
+	 * instances.
 	 */
-	public CircularReferenceConfigurer circularReferenceHandling()
-	{
+	public CircularReferenceConfigurer circularReferenceHandling() {
 		return circularReferenceService;
 	}
 
 	/**
-	 * Allows to in- or exclude nodes based on property name, object type, category or location in the object
-	 * graph.
+	 * Allows to in- or exclude nodes based on property name, object type,
+	 * category or location in the object graph.
 	 */
-	public InclusionConfigurer inclusion()
-	{
+	public InclusionConfigurer inclusion() {
 		return inclusionService;
 	}
 
 	/**
 	 * Allows to configure the way objects are compared.
 	 */
-	public ComparisonConfigurer comparison()
-	{
+	public ComparisonConfigurer comparison() {
 		return comparisonService;
 	}
 
 	/**
-	 * Allows to configure the way objects identities are established when comparing collections by
-	 * CollectionDiffer.
+	 * Allows to configure the way objects identities are established when
+	 * comparing collections by CollectionDiffer.
 	 */
-	public IdentityConfigurer identity()
-	{
+	public IdentityConfigurer identity() {
 		return identityService;
 	}
 
 	/**
-	 * Allows to assign custom categories (or tags) to entire types or selected elements and properties.
+	 * Allows to assign custom categories (or tags) to entire types or selected
+	 * elements and properties.
 	 */
-	public CategoryConfigurer categories()
-	{
+	public CategoryConfigurer categories() {
 		return categoryService;
 	}
 
-	public DifferConfigurer differs()
-	{
+	public DifferConfigurer differs() {
 		return differConfigurer;
 	}
 
-	public class DifferConfigurerImpl implements DifferConfigurer
-	{
-		public ObjectDifferBuilder register(final DifferFactory differFactory)
-		{
+	public class DifferConfigurerImpl implements DifferConfigurer {
+		public ObjectDifferBuilder register(final DifferFactory differFactory) {
 			differFactories.add(differFactory);
 			return ObjectDifferBuilder.this;
 		}
 
 	}
 
-	private class NodeQueryServiceImpl implements NodeQueryService
-	{
-		public Set<String> resolveCategories(final DiffNode node)
-		{
+	private class NodeQueryServiceImpl implements NodeQueryService {
+		public Set<String> resolveCategories(final DiffNode node) {
 			return categoryService.resolveCategories(node);
 		}
 
-		public boolean isIntrospectable(final DiffNode node)
-		{
+		public boolean isIntrospectable(final DiffNode node) {
 			return introspectionService.isIntrospectable(node);
 		}
 
-		public boolean isIgnored(final DiffNode node)
-		{
+		public boolean isIgnored(final DiffNode node) {
 			return inclusionService.isIgnored(node);
 		}
 
-		public boolean isReturnable(final DiffNode node)
-		{
+		public boolean isReturnable(final DiffNode node) {
 			return returnableNodeService.isReturnable(node);
 		}
 
-		public ComparisonStrategy resolveComparisonStrategy(final DiffNode node)
-		{
+		public ComparisonStrategy resolveComparisonStrategy(final DiffNode node) {
 			return comparisonService.resolveComparisonStrategy(node);
 		}
 
-		public PrimitiveDefaultValueMode resolvePrimitiveDefaultValueMode(final DiffNode node)
-		{
+		public PrimitiveDefaultValueMode resolvePrimitiveDefaultValueMode(
+				final DiffNode node) {
 			return comparisonService.resolvePrimitiveDefaultValueMode(node);
 		}
 	}

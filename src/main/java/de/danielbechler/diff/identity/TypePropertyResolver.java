@@ -16,43 +16,32 @@
 
 package de.danielbechler.diff.identity;
 
-import static de.danielbechler.diff.inclusion.Inclusion.DEFAULT;
-import static de.danielbechler.diff.inclusion.Inclusion.EXCLUDED;
-import static de.danielbechler.diff.inclusion.Inclusion.INCLUDED;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import de.danielbechler.diff.inclusion.Inclusion;
-import de.danielbechler.diff.inclusion.InclusionResolver;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.util.Assert;
 
-class TypePropertyResolver
-{
+class TypePropertyResolver {
 	private final Map<PropertyId, IdentityStrategy> strategies = new HashMap<PropertyId, IdentityStrategy>();
 
-	public IdentityStrategy resolve(final DiffNode node)
-	{
-		if (isQualified(node))
-		{
-			final PropertyId propertyKey = new PropertyId(node.getParentNode().getValueType(), node.getPropertyName());
+	public IdentityStrategy resolve(final DiffNode node) {
+		if (isQualified(node)) {
+			final PropertyId propertyKey = new PropertyId(node.getParentNode()
+					.getValueType(), node.getPropertyName());
 			final IdentityStrategy strategy = strategies.get(propertyKey);
 			return strategy;
 		}
 		return null;
 	}
 
-	private static boolean isQualified(final DiffNode node)
-	{
-		if (node.isPropertyAware())
-		{
-			if (node.getParentNode() == null || node.getParentNode().getValueType() == null)
-			{
+	private static boolean isQualified(final DiffNode node) {
+		if (node.isPropertyAware()) {
+			if (node.getParentNode() == null
+					|| node.getParentNode().getValueType() == null) {
 				return false;
 			}
-			if (node.getPropertyName() == null)
-			{
+			if (node.getPropertyName() == null) {
 				return false;
 			}
 			return true;
@@ -60,21 +49,18 @@ class TypePropertyResolver
 		return false;
 	}
 
-
-	public void setStrategy(final Class<?> type, final IdentityStrategy identityStrategy, final String... properties)
-	{
+	public void setStrategy(final Class<?> type,
+			final IdentityStrategy identityStrategy, final String... properties) {
 		for (String property : properties) {
 			strategies.put(new PropertyId(type, property), identityStrategy);
 		}
 	}
 
-	private static class PropertyId
-	{
+	private static class PropertyId {
 		private final Class<?> type;
 		private final String property;
 
-		private PropertyId(final Class<?> type, final String property)
-		{
+		private PropertyId(final Class<?> type, final String property) {
 			Assert.notNull(type, "type");
 			Assert.notNull(property, "property");
 			this.type = type;
@@ -82,33 +68,27 @@ class TypePropertyResolver
 		}
 
 		@Override
-		public int hashCode()
-		{
+		public int hashCode() {
 			int result = type.hashCode();
 			result = 31 * result + property.hashCode();
 			return result;
 		}
 
 		@Override
-		public boolean equals(final Object o)
-		{
-			if (this == o)
-			{
+		public boolean equals(final Object o) {
+			if (this == o) {
 				return true;
 			}
-			if (o == null || getClass() != o.getClass())
-			{
+			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
 
 			final PropertyId that = (PropertyId) o;
 
-			if (!property.equals(that.property))
-			{
+			if (!property.equals(that.property)) {
 				return false;
 			}
-			if (!type.equals(that.type))
-			{
+			if (!type.equals(that.type)) {
 				return false;
 			}
 

@@ -24,8 +24,7 @@ import de.danielbechler.util.Strings;
 /**
  * @author Daniel Bechler
  */
-public final class CollectionItemElementSelector extends ElementSelector
-{
+public final class CollectionItemElementSelector extends ElementSelector {
 	private final Object item;
 	private final IdentityStrategy identityStrategy;
 
@@ -34,8 +33,7 @@ public final class CollectionItemElementSelector extends ElementSelector
 	 *
 	 * @param item
 	 */
-	public CollectionItemElementSelector(final Object item)
-	{
+	public CollectionItemElementSelector(final Object item) {
 		this.item = item;
 		this.identityStrategy = IdentityService.EQUALS_IDENTITY_STRATEGY;
 	}
@@ -46,45 +44,42 @@ public final class CollectionItemElementSelector extends ElementSelector
 	 * @param item
 	 * @param identityStrategy
 	 */
-	public CollectionItemElementSelector(final Object item, final IdentityStrategy identityStrategy)
-	{
+	public CollectionItemElementSelector(final Object item,
+			final IdentityStrategy identityStrategy) {
 		this.item = item;
 		Assert.notNull(identityStrategy, "identityStrategy");
 		this.identityStrategy = identityStrategy;
 	}
 
 	/**
-	 * @deprecated Low-level API. Don't use in production code. May be removed in future versions.
+	 * @deprecated Low-level API. Don't use in production code. May be removed
+	 *             in future versions.
 	 */
 	@SuppressWarnings({"UnusedDeclaration"})
 	@Deprecated
-	public Object getItem()
-	{
+	public Object getItem() {
 		return item;
 	}
 
 	@Override
-	public String toHumanReadableString()
-	{
+	public String toHumanReadableString() {
 		return "[" + Strings.toSingleLineString(item) + "]";
 	}
 
 	@Override
-	public boolean equals(final Object o)
-	{
-		if (this == o)
-		{
+	public boolean equals(final Object o) {
+		if (this == o) {
 			return true;
 		}
-		if (o == null || getClass() != o.getClass())
-		{
+		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
 
 		final CollectionItemElementSelector that = (CollectionItemElementSelector) o;
 
-		if (item != null ? !identityStrategy.equals(item, that.item) : that.item != null)
-		{
+		if (item != null
+				? !identityStrategy.equals(item, that.item)
+				: that.item != null) {
 			return false;
 		}
 
@@ -92,8 +87,7 @@ public final class CollectionItemElementSelector extends ElementSelector
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return item != null ? identityStrategy.hashCode(item) : 0;
 	}
 }

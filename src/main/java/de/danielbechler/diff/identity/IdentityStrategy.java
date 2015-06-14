@@ -4,7 +4,8 @@ public interface IdentityStrategy {
 
 	/**
 	 *
-	 * @param _this never null
+	 * @param _this
+	 *            never null
 	 * @param o
 	 * @return
 	 */
@@ -12,7 +13,8 @@ public interface IdentityStrategy {
 
 	/**
 	 *
-	 * @param _this never null
+	 * @param _this
+	 *            never null
 	 * @return
 	 */
 	public int hashCode(final Object _this);

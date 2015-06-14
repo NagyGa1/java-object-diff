@@ -36,16 +36,14 @@ import de.danielbechler.util.Assert;
  *
  * @author Daniel Bechler
  */
-public final class CollectionDiffer implements Differ
-{
+public final class CollectionDiffer implements Differ {
 	private final DifferDispatcher differDispatcher;
 	private final ComparisonStrategyResolver comparisonStrategyResolver;
 	private final IdentityStrategyResolver identityStrategyResolver;
 
 	public CollectionDiffer(final DifferDispatcher differDispatcher,
 			final ComparisonStrategyResolver comparisonStrategyResolver,
-			final IdentityStrategyResolver identityStrategyResolver)
-	{
+			final IdentityStrategyResolver identityStrategyResolver) {
 		Assert.notNull(differDispatcher, "differDispatcher");
 		this.differDispatcher = differDispatcher;
 
@@ -56,56 +54,54 @@ public final class CollectionDiffer implements Differ
 		this.identityStrategyResolver = identityStrategyResolver;
 	}
 
-	private static void compareUsingComparisonStrategy(final DiffNode collectionNode,
-													   final Instances collectionInstances,
-													   final ComparisonStrategy comparisonStrategy)
-	{
-		comparisonStrategy.compare(collectionNode, collectionInstances.getType(), collectionInstances.getWorking(Collection.class), collectionInstances.getBase(Collection.class));
+	private static void compareUsingComparisonStrategy(
+			final DiffNode collectionNode, final Instances collectionInstances,
+			final ComparisonStrategy comparisonStrategy) {
+		comparisonStrategy.compare(collectionNode,
+				collectionInstances.getType(),
+				collectionInstances.getWorking(Collection.class),
+				collectionInstances.getBase(Collection.class));
 	}
 
-	private static DiffNode newNode(final DiffNode parentNode, final Instances collectionInstances)
-	{
+	private static DiffNode newNode(final DiffNode parentNode,
+			final Instances collectionInstances) {
 		final Accessor accessor = collectionInstances.getSourceAccessor();
 		final Class<?> type = collectionInstances.getType();
 		return new DiffNode(parentNode, accessor, type);
 	}
 
-	public boolean accepts(final Class<?> type)
-	{
+	public boolean accepts(final Class<?> type) {
 		return Collection.class.isAssignableFrom(type);
 	}
 
-	public final DiffNode compare(final DiffNode parentNode, final Instances collectionInstances)
-	{
+	public final DiffNode compare(final DiffNode parentNode,
+			final Instances collectionInstances) {
 		final DiffNode collectionNode = newNode(parentNode, collectionInstances);
-		final IdentityStrategy identityStrategy = identityStrategyResolver.resolveIdentityStrategy(collectionNode);
-		if (collectionInstances.hasBeenAdded())
-		{
-			final Collection addedItems = collectionInstances.getWorking(Collection.class);
-			compareItems(collectionNode, collectionInstances, addedItems, identityStrategy);
+		final IdentityStrategy identityStrategy = identityStrategyResolver
+				.resolveIdentityStrategy(collectionNode);
+		if (collectionInstances.hasBeenAdded()) {
+			final Collection addedItems = collectionInstances
+					.getWorking(Collection.class);
+			compareItems(collectionNode, collectionInstances, addedItems,
+					identityStrategy);
 			collectionNode.setState(DiffNode.State.ADDED);
-		}
-		else if (collectionInstances.hasBeenRemoved())
-		{
-			final Collection<?> removedItems = collectionInstances.getBase(Collection.class);
-			compareItems(collectionNode, collectionInstances, removedItems, identityStrategy);
+		} else if (collectionInstances.hasBeenRemoved()) {
+			final Collection<?> removedItems = collectionInstances
+					.getBase(Collection.class);
+			compareItems(collectionNode, collectionInstances, removedItems,
+					identityStrategy);
 			collectionNode.setState(DiffNode.State.REMOVED);
-		}
-		else if (collectionInstances.areSame())
-		{
+		} else if (collectionInstances.areSame()) {
 			collectionNode.setState(DiffNode.State.UNTOUCHED);
-		}
-		else
-		{
-			final ComparisonStrategy comparisonStrategy = comparisonStrategyResolver.resolveComparisonStrategy(collectionNode);
-			if (comparisonStrategy == null)
-			{
+		} else {
+			final ComparisonStrategy comparisonStrategy = comparisonStrategyResolver
+					.resolveComparisonStrategy(collectionNode);
+			if (comparisonStrategy == null) {
 				compareInternally(collectionNode, collectionInstances,
 						identityStrategy);
-			}
-			else
-			{
-				compareUsingComparisonStrategy(collectionNode, collectionInstances, comparisonStrategy);
+			} else {
+				compareUsingComparisonStrategy(collectionNode,
+						collectionInstances, comparisonStrategy);
 			}
 		}
 		return collectionNode;
@@ -113,10 +109,11 @@ public final class CollectionDiffer implements Differ
 
 	private void compareInternally(final DiffNode collectionNode,
 			final Instances collectionInstances,
-			final IdentityStrategy identityStrategy)
-	{
-		final Collection<?> working = collectionInstances.getWorking(Collection.class);
-		final Collection<?> base = collectionInstances.getBase(Collection.class);
+			final IdentityStrategy identityStrategy) {
+		final Collection<?> working = collectionInstances
+				.getWorking(Collection.class);
+		final Collection<?> base = collectionInstances
+				.getBase(Collection.class);
 
 		final Collection<?> added = new LinkedList<Object>(working);
 		final Collection<?> removed = new LinkedList<Object>(base);
@@ -128,36 +125,41 @@ public final class CollectionDiffer implements Differ
 		remove(known, removed, identityStrategy);
 
 		// TODO I am not sure why these are separate exactly? (NagyGa1)
-		compareItems(collectionNode, collectionInstances, added, identityStrategy);
-		compareItems(collectionNode, collectionInstances, removed, identityStrategy);
-		compareItems(collectionNode, collectionInstances, known, identityStrategy);
+		compareItems(collectionNode, collectionInstances, added,
+				identityStrategy);
+		compareItems(collectionNode, collectionInstances, removed,
+				identityStrategy);
+		compareItems(collectionNode, collectionInstances, known,
+				identityStrategy);
 	}
 
-	private void remove(final Collection<?> from, final Collection<?> these, final IdentityStrategy identityStrategy) {
+	private void remove(final Collection<?> from, final Collection<?> these,
+			final IdentityStrategy identityStrategy) {
 		final Iterator<?> iterator = from.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			final Object _this = iterator.next();
 			IdentityStrategy elementIdentityStrategy = identityStrategy;
 			// try with element class if was not specified before
-			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
-				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(_this);
+			if (elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver
+						.resolveByCollectionElement(_this);
 			}
-			if(contains(these, _this, elementIdentityStrategy)) {
+			if (contains(these, _this, elementIdentityStrategy)) {
 				iterator.remove();
 			}
 		}
 	}
 
-	private boolean contains(final Collection<?> these,
-							 final Object _this,
-							 final IdentityStrategy identityStrategy) {
+	private boolean contains(final Collection<?> these, final Object _this,
+			final IdentityStrategy identityStrategy) {
 		for (Object o : these) {
 			IdentityStrategy elementIdentityStrategy = identityStrategy;
 			// try with element class if was not specified before
-			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
-				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(_this);
+			if (elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver
+						.resolveByCollectionElement(_this);
 			}
-			if(elementIdentityStrategy.equals(_this, o)) {
+			if (elementIdentityStrategy.equals(_this, o)) {
 				return true;
 			}
 		}
@@ -166,19 +168,19 @@ public final class CollectionDiffer implements Differ
 	}
 
 	private void compareItems(final DiffNode collectionNode,
-							  final Instances collectionInstances,
-							  final Iterable<?> items,
-							  final IdentityStrategy identityStrategy)
-	{
-		for (final Object item : items)
-		{
+			final Instances collectionInstances, final Iterable<?> items,
+			final IdentityStrategy identityStrategy) {
+		for (final Object item : items) {
 			IdentityStrategy elementIdentityStrategy = identityStrategy;
 			// try with element class if was not specified before
-			if(elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
-				elementIdentityStrategy = identityStrategyResolver.resolveByCollectionElement(item);
+			if (elementIdentityStrategy == IdentityService.EQUALS_IDENTITY_STRATEGY) {
+				elementIdentityStrategy = identityStrategyResolver
+						.resolveByCollectionElement(item);
 			}
-			final Accessor itemAccessor = new CollectionItemAccessor(item, elementIdentityStrategy);
-			differDispatcher.dispatch(collectionNode, collectionInstances, itemAccessor);
+			final Accessor itemAccessor = new CollectionItemAccessor(item,
+					elementIdentityStrategy);
+			differDispatcher.dispatch(collectionNode, collectionInstances,
+					itemAccessor);
 		}
 	}
 }
