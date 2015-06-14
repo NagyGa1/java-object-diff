@@ -14,6 +14,8 @@
     To avoid this, returning a constant hashCode seems like a small price
     to pay. Yes, it may have a small performance impact, but we can still
     optimize when that turns out to be a problem.
+    
+    **NagyGa1: This is reverted in the NagyGa1 (com.studium) fork, using hashCode as per normal.**
 
 ## 0.92.1
 
