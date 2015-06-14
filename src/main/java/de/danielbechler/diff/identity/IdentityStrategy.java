@@ -1,5 +1,9 @@
 package de.danielbechler.diff.identity;
 
+/**
+ * Allows to configure the way objects identities are established when comparing
+ * collections by CollectionDiffer.
+ */
 public interface IdentityStrategy {
 
 	/**

@@ -26,6 +26,8 @@ import de.danielbechler.diff.path.NodePathValueHolder;
 
 /**
  * Resolves identity strategies, if none specified use EqualsIdentityStrategy().
+ *
+ * At the moment only used by CollectionDiffer.
  */
 public class IdentityService
 		implements
@@ -63,7 +65,8 @@ public class IdentityService
 
 	public IdentityStrategy resolveByCollectionElement(
 			final Object collectionElement) {
-		if (collectionElement == null) {
+		if (collectionElement == null)
+		{
 			return EQUALS_IDENTITY_STRATEGY;
 		}
 
