@@ -36,16 +36,13 @@ class CollectionItemElementSelectorTest extends Specification {
 		  !element.equals(null)
 	}
 
-	def 'should have constant hashCode'() {
-		// NOTE(@SQiShER): In this case the hashCode is only used to use the ElementSelector
-		// as key in a Map. With introduction of the IdentityStrategy this adds an unnecessary
-		// source of confusion and complexity when implementing custom IdentityStrategies. To
-		// avoid this, returning a constant hashCode seems like a small fee to pay. Yes, it may
-		// have a small performance impact, but we can still optimize when it turns out to
-		// actually be a problem.
+	def 'should have same hashCode as item'() {
+		setup:
+		  def item = "foo"
+		  def element = new CollectionItemElementSelector(item)
 
 		expect:
-		  new CollectionItemElementSelector('foo').hashCode() == 31
+		  element.hashCode() == item.hashCode()
 	}
 
 	def 'should provide accessor for item'() {
