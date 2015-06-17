@@ -25,6 +25,7 @@ import de.danielbechler.diff.selector.MapKeyElementSelector
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class IdentityStrategyConfigIT extends Specification {
 
@@ -147,11 +148,12 @@ class IdentityStrategyConfigIT extends Specification {
 				  .getChild(PV1CodeSelector).getChild("code").untouched
 	}
 
+	@Unroll("OfType configuration WITH IdentityStrategy #aClazz")
 	def 'OfType configuration WITH IdentityStrategy'() {
 		when:
 		  def node = ObjectDifferBuilder
 				  .startBuilding()
-				  .identity().ofType(ProductVersion.class).toUse(codeIdentity).and()
+				  .identity().ofType(aClazz).toUse(codeIdentity).and()
 				  .filtering().returnNodesWithState(DiffNode.State.UNTOUCHED).and()
 				  .build().compare(working, base);
 		then: "High level nodes"
@@ -170,6 +172,8 @@ class IdentityStrategyConfigIT extends Specification {
 				  .getChild(PV1CodeSelector).getChild("id").changed
 		  node.getChild("productMap").getChild(new MapKeyElementSelector("PROD1")).getChild("productVersions")
 				  .getChild(PV1CodeSelector).getChild("code").untouched
+		where:
+		  aClazz << [ProductVersion, CodeId]
 	}
 
 	def 'OfNode configuration WITH IdentityStrategy'() {
@@ -220,7 +224,7 @@ class IdentityStrategyConfigIT extends Specification {
 		Map<String, Product> otherMap;
 	}
 
-	public interface CodeId {
+	public static interface CodeId {
 		String getCode();
 	}
 

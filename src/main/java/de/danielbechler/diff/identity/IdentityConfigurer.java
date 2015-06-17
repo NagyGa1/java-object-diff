@@ -22,6 +22,8 @@ import de.danielbechler.diff.path.NodePath;
 /**
  * Allows to configure the way objects identities are established when comparing
  * collections by CollectionDiffer.
+ * <p />
+ * Applies rules to subclasses / interface implementations.
  */
 public interface IdentityConfigurer {
 	Of ofNode(NodePath nodePath);

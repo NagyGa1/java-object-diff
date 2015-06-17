@@ -26,119 +26,132 @@ import de.danielbechler.diff.path.NodePathValueHolder;
 
 /**
  * Resolves identity strategies, if none specified use EqualsIdentityStrategy().
- *
+ * <p/>
  * At the moment only used by CollectionDiffer.
  */
 public class IdentityService
-		implements
-			IdentityConfigurer,
-			IdentityStrategyResolver {
-	public static final IdentityStrategy EQUALS_IDENTITY_STRATEGY = new EqualsIdentityStrategy();
+        implements
+        IdentityConfigurer,
+        IdentityStrategyResolver {
+    public static final IdentityStrategy EQUALS_IDENTITY_STRATEGY = new EqualsIdentityStrategy();
 
-	private final NodePathValueHolder<IdentityStrategy> nodePathStrategies = NodePathValueHolder
-			.of(IdentityStrategy.class);
-	private final Map<Class<?>, IdentityStrategy> typeStrategyMap = new HashMap<Class<?>, IdentityStrategy>();
-	private final TypePropertyResolver typePropertyResolver = new TypePropertyResolver();
-	private final ObjectDifferBuilder objectDifferBuilder;
+    private final NodePathValueHolder<IdentityStrategy> nodePathStrategies = NodePathValueHolder
+            .of(IdentityStrategy.class);
+    private final Map<Class<?>, IdentityStrategy> typeStrategyMap = new HashMap<Class<?>, IdentityStrategy>();
+    private final TypePropertyResolver typePropertyResolver = new TypePropertyResolver();
+    private final ObjectDifferBuilder objectDifferBuilder;
 
-	public IdentityService(final ObjectDifferBuilder objectDifferBuilder) {
-		this.objectDifferBuilder = objectDifferBuilder;
-	}
+    public IdentityService(final ObjectDifferBuilder objectDifferBuilder) {
+        this.objectDifferBuilder = objectDifferBuilder;
+    }
 
-	public IdentityStrategy resolveIdentityStrategy(final DiffNode node) {
-		IdentityStrategy identityStrategy = typePropertyResolver.resolve(node);
-		if (identityStrategy != null) {
-			return identityStrategy;
-		}
-		identityStrategy = nodePathStrategies.valueForNodePath(node.getPath());
-		if (identityStrategy != null) {
-			return identityStrategy;
-		}
+    public IdentityStrategy resolveIdentityStrategy(final DiffNode node) {
+        IdentityStrategy identityStrategy = typePropertyResolver.resolve(node);
+        if (identityStrategy != null) {
+            return identityStrategy;
+        }
+        identityStrategy = nodePathStrategies.valueForNodePath(node.getPath());
+        if (identityStrategy != null) {
+            return identityStrategy;
+        }
 
-		final Class<?> valueType = node.getValueType();
-		if (typeStrategyMap.containsKey(valueType)) {
-			return typeStrategyMap.get(valueType);
-		}
+        identityStrategy = resolveTypeStrategy(node.getValueType());
+        if (identityStrategy != null) {
+            return identityStrategy;
+        }
 
-		return EQUALS_IDENTITY_STRATEGY;
-	}
+        return EQUALS_IDENTITY_STRATEGY;
+    }
 
-	public IdentityStrategy resolveByCollectionElement(
-			final Object collectionElement) {
-		if (collectionElement == null)
-		{
-			return EQUALS_IDENTITY_STRATEGY;
-		}
+    /**
+     * Resolves by type including subclasses / interfaces.
+     *
+     * @param aClass
+     * @return
+     */
+    private IdentityStrategy resolveTypeStrategy(final Class<?> aClass) {
+        for (Class<?> keyClass : typeStrategyMap.keySet()) {
+            if (keyClass.isAssignableFrom(aClass)) {
+                return typeStrategyMap.get(keyClass);
+            }
+        }
+        return null;
+    }
 
-		final IdentityStrategy identityStrategy = typeStrategyMap
-				.get(collectionElement.getClass());
-		if (identityStrategy != null) {
-			return identityStrategy;
-		}
+    public IdentityStrategy resolveByCollectionElement(
+            final Object collectionElement) {
+        if (collectionElement == null) {
+            return EQUALS_IDENTITY_STRATEGY;
+        }
 
-		return EQUALS_IDENTITY_STRATEGY;
-	}
+        final IdentityStrategy identityStrategy = resolveTypeStrategy(collectionElement.getClass());
+        if (identityStrategy != null) {
+            return identityStrategy;
+        }
 
-	public Of ofNode(final NodePath nodePath) {
-		return new OfNodePath(nodePath);
-	}
+        return EQUALS_IDENTITY_STRATEGY;
+    }
 
-	public Of ofType(final Class<?> type) {
-		return new OfType(type);
-	}
+    public Of ofNode(final NodePath nodePath) {
+        return new OfNodePath(nodePath);
+    }
 
-	public Of ofTypeAndProperty(final Class<?> type,
-			final String... propertyNames) {
-		return new OfTypeAndProperty(type, propertyNames);
-	}
+    public Of ofType(final Class<?> type) {
+        return new OfType(type);
+    }
 
-	public ObjectDifferBuilder and() {
-		return objectDifferBuilder;
-	}
+    public Of ofTypeAndProperty(final Class<?> type,
+                                final String... propertyNames) {
+        return new OfTypeAndProperty(type, propertyNames);
+    }
 
-	private abstract static class AbstractOf implements Of {
-	}
+    public ObjectDifferBuilder and() {
+        return objectDifferBuilder;
+    }
 
-	private class OfType extends AbstractOf {
-		private final Class<?> type;
+    private abstract static class AbstractOf implements Of {
+    }
 
-		public OfType(final Class<?> type) {
-			this.type = type;
-		}
+    private class OfType extends AbstractOf {
+        private final Class<?> type;
 
-		public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
-			typeStrategyMap.put(type, identityStrategy);
-			return IdentityService.this;
-		}
-	}
+        public OfType(final Class<?> type) {
+            this.type = type;
+        }
 
-	private class OfNodePath extends AbstractOf {
-		private final NodePath nodePath;
+        public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
+            typeStrategyMap.put(type, identityStrategy);
+            return IdentityService.this;
+        }
+    }
 
-		public OfNodePath(final NodePath nodePath) {
-			this.nodePath = nodePath;
-		}
+    private class OfNodePath extends AbstractOf {
+        private final NodePath nodePath;
 
-		public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
-			nodePathStrategies.put(nodePath, identityStrategy);
-			return IdentityService.this;
-		}
-	}
+        public OfNodePath(final NodePath nodePath) {
+            this.nodePath = nodePath;
+        }
 
-	private class OfTypeAndProperty extends AbstractOf {
-		private final Class<?> type;
+        public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
+            nodePathStrategies.put(nodePath, identityStrategy);
+            return IdentityService.this;
+        }
+    }
 
-		private final String[] properties;
+    private class OfTypeAndProperty extends AbstractOf {
+        private final Class<?> type;
 
-		public OfTypeAndProperty(final Class<?> type, final String[] properties) {
-			this.type = type;
-			this.properties = properties;
-		}
+        private final String[] properties;
 
-		public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
-			typePropertyResolver
-					.setStrategy(type, identityStrategy, properties);
-			return IdentityService.this;
-		}
-	}
+        public OfTypeAndProperty(final Class<?> type, final String[] properties) {
+            this.type = type;
+            this.properties = properties;
+        }
+
+        public IdentityConfigurer toUse(final IdentityStrategy identityStrategy) {
+            typePropertyResolver
+                    .setStrategy(type, identityStrategy, properties);
+            return IdentityService.this;
+        }
+    }
 }
