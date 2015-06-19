@@ -38,6 +38,7 @@ public class IdentityService
     private final NodePathValueHolder<IdentityStrategy> nodePathStrategies = NodePathValueHolder
             .of(IdentityStrategy.class);
     private final Map<Class<?>, IdentityStrategy> typeStrategyMap = new HashMap<Class<?>, IdentityStrategy>();
+    private final Map<Class<?>, IdentityStrategy> typeStrategyMapCache = new HashMap<Class<?>, IdentityStrategy>();
     private final TypePropertyResolver typePropertyResolver = new TypePropertyResolver();
     private final ObjectDifferBuilder objectDifferBuilder;
 
@@ -67,15 +68,29 @@ public class IdentityService
      * Resolves by type including subclasses / interfaces.
      *
      * @param aClass
-     * @return
+     * @return never null, EQUALS_IDENTITY_STRATEGY if not found
      */
     private IdentityStrategy resolveTypeStrategy(final Class<?> aClass) {
-        for (Class<?> keyClass : typeStrategyMap.keySet()) {
-            if (keyClass.isAssignableFrom(aClass)) {
-                return typeStrategyMap.get(keyClass);
+        // check cache
+        IdentityStrategy ret = typeStrategyMapCache.get(aClass);
+
+        if(ret == null) {
+            // not in cache, search
+            for (Class<?> keyClass : typeStrategyMap.keySet()) {
+                if (keyClass.isAssignableFrom(aClass)) {
+                    ret = typeStrategyMap.get(keyClass);
+                    typeStrategyMapCache.put(aClass, ret);
+                    return ret;
+                }
             }
+            // not found, use EQUALS_IDENTITY_STRATEGY
+            ret = EQUALS_IDENTITY_STRATEGY;
+            typeStrategyMapCache.put(aClass, ret);
+            return ret;
+        } else {
+            // in cache, return
+            return ret;
         }
-        return null;
     }
 
     public IdentityStrategy resolveByCollectionElement(
