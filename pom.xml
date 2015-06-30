@@ -440,10 +440,13 @@
 
     <distributionManagement>
         <repository>
-            <id>bintray-sqisher-maven-java-object-diff</id>
-            <name>sqisher-maven-java-object-diff</name>
-            <url>https://api.bintray.com/maven/sqisher/maven/java-object-diff</url>
+            <id>studium_releases</id>
+            <url>https://www.studium.sg/nexus/content/repositories/releases</url>
         </repository>
+        <snapshotRepository>
+            <id>studium_snapshots</id>
+            <url>https://www.studium.sg/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
 
 </project>
