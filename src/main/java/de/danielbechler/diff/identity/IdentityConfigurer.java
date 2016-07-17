@@ -26,10 +26,20 @@ import de.danielbechler.diff.path.NodePath;
  * Applies rules to subclasses / interface implementations.
  */
 public interface IdentityConfigurer {
+	/**
+	 * @param nodePath of the collection to attach to.
+	 */
 	Of ofNode(NodePath nodePath);
 
-	Of ofType(Class<?> type);
+	/**
+	 * @param collectionElementType of the elements within the collection to attach to.
+	 */
+	Of ofType(Class<?> collectionElementType);
 
+	/**
+	 * @param type of the host class of the collection to attach to.
+	 * @param propertyNames property name of the collection in the host class
+	 */
 	Of ofTypeAndProperty(Class<?> type, String... propertyNames);
 
 	ObjectDifferBuilder and();

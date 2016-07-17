@@ -111,8 +111,8 @@ public class IdentityService
         return new OfNodePath(nodePath);
     }
 
-    public Of ofType(final Class<?> type) {
-        return new OfType(type);
+    public Of ofType(final Class<?> collectionElementType) {
+        return new OfType(collectionElementType);
     }
 
     public Of ofTypeAndProperty(final Class<?> type,
